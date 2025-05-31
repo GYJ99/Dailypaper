@@ -1,0 +1,235 @@
+/* 全局样式 */
+body {
+    background-color: #f5f8fa;
+    color: #333;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    max-width: 1280px;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    border-radius: 10px 10px 0 0 !important;
+    font-weight: 600;
+    padding: 12px 15px;
+}
+
+.card-body {
+    padding: 15px;
+}
+
+/* 按钮样式 */
+.btn {
+    border-radius: 6px;
+    font-weight: 500;
+    padding: 6px 12px;
+    transition: all 0.2s;
+}
+
+.btn-sm {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+}
+
+.btn-light {
+    background-color: #fff;
+    border-color: #e0e0e0;
+}
+
+.btn-light:hover {
+    background-color: #f0f0f0;
+}
+
+/* 日历样式 */
+.calendar-table {
+    table-layout: fixed;
+    margin-bottom: 0;
+}
+
+.calendar-table th, 
+.calendar-table td {
+    text-align: center;
+    vertical-align: middle;
+    padding: 6px 2px;
+}
+
+.calendar-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.calendar-day {
+    height: 50px;
+    cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    border-radius: 6px;
+}
+
+.calendar-day:hover {
+    background-color: #f0f7ff;
+}
+
+.calendar-day.other-month {
+    color: #adb5bd;
+    background-color: #f9f9f9;
+}
+
+.calendar-day.working-day {
+    background-color: #e6f2ff;
+    color: #0d6efd;
+    font-weight: bold;
+}
+
+.calendar-day.today {
+    border: 2px solid #dc3545;
+    font-weight: bold;
+}
+
+.day-number {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    font-size: 13px;
+}
+
+.work-hours {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    font-size: 11px;
+    color: #495057;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 1px 4px;
+    border-radius: 3px;
+}
+
+/* 日历导航按钮 */
+#prev-month, #next-month {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    padding: 0;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #0d6efd;
+    border: 1px solid #dee2e6;
+}
+
+#prev-month:hover, #next-month:hover {
+    background-color: #fff;
+    color: #0a58ca;
+}
+
+/* 统计样式 */
+.stat-item {
+    text-align: center;
+    padding: 8px 5px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    transition: all 0.2s;
+    border: 1px solid #eaeaea;
+}
+
+.stat-item:hover {
+    background-color: #e9f2ff;
+    border-color: #d0e1ff;
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin: 0;
+    color: #0d6efd;
+}
+
+/* Markdown编辑器样式调整 */
+.CodeMirror {
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.editor-toolbar {
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    border: 1px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+.editor-toolbar button {
+    color: #495057 !important;
+}
+
+.editor-toolbar button:hover, 
+.editor-toolbar button.active {
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+/* 选中日期信息样式 */
+#selected-date-info h6 {
+    margin-bottom: 0.5rem;
+    color: #495057;
+}
+
+#selected-date-info .badge {
+    font-weight: normal;
+    padding: 5px 8px;
+    border-radius: 4px;
+}
+
+/* 模态框样式 */
+.modal-content {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.modal-footer {
+    border-top: 1px solid #eaeaea;
+    padding: 10px 15px;
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .calendar-day {
+        height: 50px;
+    }
+    
+    .day-number {
+        font-size: 12px;
+    }
+    
+    .work-hours {
+        font-size: 10px;
+    }
+    
+    .stat-value {
+        font-size: 1.2rem;
+    }
+}

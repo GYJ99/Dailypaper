@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日报工作记录工具</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- 引入Bootstrap -->
+    <link href="{{ url_for('static', filename='css/lib/bootstrap.min.css') }}" rel="stylesheet">
+    <!-- 引入精简版Font Awesome图标 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/fontawesome-minimal.css') }}">
+    <!-- 预加载字体文件 -->
+    <link rel="preload" href="{{ url_for('static', filename='webfonts/fa-solid-900.woff2') }}" as="font" type="font/woff2" crossorigin>
+    <!-- 引入SimpleMDE Markdown编辑器 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lib/simplemde.min.css') }}">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="text-center mb-3">日报工作记录工具</h2>
+        
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button id="prev-month" class="btn btn-sm btn-light"><i class="fas fa-chevron-left"></i></button>
+                            <h5 id="current-month-year" class="mb-0 fw-bold">2025年5月</h5>
+                            <button id="next-month" class="btn btn-sm btn-light"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered calendar-table">
+                            <thead>
+                                <tr>
+                                    <th>周日</th>
+                                    <th>周一</th>
+                                    <th>周二</th>
+                                    <th>周三</th>
+                                    <th>周四</th>
+                                    <th>周五</th>
+                                    <th>周六</th>
+                                </tr>
+                            </thead>
+                            <tbody id="calendar-body">
+                                <!-- 日历内容将通过JavaScript动态生成 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 工作时间设置部分，移动到日历下方 -->
+                <div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">工作时间设置</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-2">
+                            <div class="col-md-5">
+                                <div class="mb-2">
+                                    <label for="start-time" class="form-label small fw-bold">上班时间</label>
+                                    <input type="time" class="form-control form-control-sm" id="start-time" value="09:00">
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="mb-2">
+                                    <label for="end-time" class="form-label small fw-bold">下班时间</label>
+                                    <input type="time" class="form-control form-control-sm" id="end-time" value="18:00">
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold">时长</label>
+                                    <p id="calculated-hours" class="form-control-plaintext text-center fw-bold text-primary">9小时</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 日报编辑器 -->
+                <div class="card">
+                    <div class="card-header bg-warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold">日报编辑 <span id="report-date" class="badge bg-secondary"></span></h5>
+                            <div>
+                                <button id="save-report" class="btn btn-sm btn-success"><i class="fas fa-save me-1"></i>保存</button>
+                                <button id="delete-report" class="btn btn-sm btn-danger ms-2"><i class="fas fa-trash-alt me-1"></i>删除</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <textarea id="report-editor"></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0 fw-bold">工作统计</h5>
+                            <div class="btn-group">
+                                <a href="/api/download/json" class="btn btn-sm btn-light" title="下载JSON格式"><i class="fas fa-file-code me-1"></i>JSON格式</a>
+                                <a href="/api/download/csv" class="btn btn-sm btn-light" title="下载CSV格式"><i class="fas fa-file-csv me-1"></i>CSV格式</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-2">
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <h6 class="small fw-bold text-muted">本月工作天数</h6>
+                                    <p id="month-days" class="stat-value">0天</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <h6 class="small fw-bold text-muted">本月工作时长</h6>
+                                    <p id="month-hours" class="stat-value">0小时</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-2 mt-2">
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <h6 class="small fw-bold text-muted">总工作天数</h6>
+                                    <p id="total-days" class="stat-value">0天</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="stat-item">
+                                    <h6 class="small fw-bold text-muted">总工作时长</h6>
+                                    <p id="total-hours" class="stat-value">0小时</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 当前选中日期信息 -->
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0 fw-bold">选中日期信息</h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <div id="selected-date-info">
+                            <p class="text-center text-muted small">请点击日历中的日期查看详情</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-3 mb-2">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5 class="mb-0 fw-bold">使用说明</h5>
+                    </div>
+                    <div class="card-body p-3">
+                        <ul>
+                            <li><strong>左键点击</strong>日历上的日期可以查看该日的日报内容和工作时间信息</li>
+                            <li><strong>右键点击</strong>日历上的日期可以设置该日的上下班时间，或删除工作时间</li>
+                            <li>标记为工作日的日期会显示为蓝色，并显示工作时长</li>
+                            <li>可以设置上班和下班时间，系统会自动计算工作时长</li>
+                            <li>可以编写并保存每天的工作日报（支持Markdown格式）</li>
+                            <li>可以单独删除日报内容而不影响工作时间记录</li>
+                            <li>统计区域会自动计算本月和总的工作天数及时长</li>
+                            <li>所有功能支持离线操作，不需要网络连接</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 上下班时间设置模态框 -->
+        <div class="modal fade" id="timeSettingModal" tabindex="-1" aria-labelledby="timeSettingModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="timeSettingModalLabel">设置工作时间</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modal-date" class="mb-3"></p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="modal-start-time" class="form-label">上班时间</label>
+                                    <input type="time" class="form-control" id="modal-start-time" value="09:00">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="modal-end-time" class="form-label">下班时间</label>
+                                    <input type="time" class="form-control" id="modal-end-time" value="18:00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" id="delete-time-settings">删除时间</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="button" class="btn btn-primary" id="save-time-settings">保存</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入JavaScript -->
+    <script src="{{ url_for('static', filename='js/lib/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lib/simplemde.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
