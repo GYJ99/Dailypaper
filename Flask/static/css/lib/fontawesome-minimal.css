@@ -1,0 +1,36 @@
+/* 最小化的Font Awesome CSS，只包含我们需要的图标 */
+.fas {
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  display: inline-block;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
+  font-family: "Font Awesome 5 Free";
+  font-weight: 900;
+}
+
+.fa-chevron-left:before {
+  content: "\f053";
+}
+
+.fa-chevron-right:before {
+  content: "\f054";
+}
+
+.fa-save:before {
+  content: "\f0c7";
+}
+
+.fa-trash-alt:before {
+  content: "\f2ed";
+}
+
+@font-face {
+  font-family: "Font Awesome 5 Free";
+  font-style: normal;
+  font-weight: 900;
+  font-display: block;
+  src: url(../../webfonts/fa-solid-900.woff2) format("woff2");
+}

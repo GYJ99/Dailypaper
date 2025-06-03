@@ -1,0 +1,143 @@
+/* SimpleMDE编辑器工具栏按钮颜色修复 */
+
+/* 直接覆盖SimpleMDE的按钮样式 */
+.editor-toolbar {
+  opacity: 1 !important;
+}
+
+/* 特定工具栏按钮颜色 */
+.editor-toolbar a {
+  display: inline-block !important;
+  text-align: center !important;
+  text-decoration: none !important;
+  color: #000 !important;
+  width: 30px !important;
+  height: 30px !important;
+  margin: 0 !important;
+  border: 1px solid transparent !important;
+  border-radius: 3px !important;
+  cursor: pointer !important;
+}
+
+/* 按钮悬停状态 */
+.editor-toolbar a.active, 
+.editor-toolbar a:hover {
+  background: #eee !important;
+  border-color: #999 !important;
+}
+
+/* 所有按钮的伪元素颜色 */
+.editor-toolbar a:before {
+  line-height: 30px !important;
+  color: #000 !important;
+}
+
+/* 具体按钮样式 - 加粗 */
+.editor-toolbar a.fa-bold:before {
+  content: "B" !important;
+  font-weight: bold !important;
+}
+
+/* 斜体 */
+.editor-toolbar a.fa-italic:before {
+  content: "I" !important;
+  font-style: italic !important;
+}
+
+/* 标题 */
+.editor-toolbar a.fa-header:before {
+  content: "H" !important;
+  font-weight: bold !important;
+}
+
+/* 无序列表 */
+.editor-toolbar a.fa-list-ul:before {
+  content: "\2022" !important; /* 项目符号 */
+}
+
+/* 有序列表 */
+.editor-toolbar a.fa-list-ol:before {
+  content: "1." !important;
+}
+
+/* 链接 */
+.editor-toolbar a.fa-link:before {
+  content: "\1F517" !important; /* 链接符号 */
+}
+
+/* 代码 */
+.editor-toolbar a.fa-code:before {
+  content: "</>" !important;
+}
+
+/* 预览 */
+.editor-toolbar a.fa-eye:before {
+  content: "\1F441" !important; /* 眼睛符号 */
+}
+
+/* 标题级别 */
+.editor-toolbar a.fa-header-1:after,
+.editor-toolbar a.fa-header-2:after,
+.editor-toolbar a.fa-header-3:after {
+  font-family: Arial, sans-serif !important;
+  font-size: 65% !important;
+  vertical-align: text-bottom !important;
+  position: relative !important;
+  top: 2px !important;
+  color: #000 !important;
+}
+
+.editor-toolbar a.fa-header-1:after {
+  content: "1" !important;
+}
+
+.editor-toolbar a.fa-header-2:after {
+  content: "2" !important;
+}
+
+.editor-toolbar a.fa-header-3:after {
+  content: "3" !important;
+}
+
+/* 分隔符 */
+.editor-toolbar i.separator {
+  display: inline-block !important;
+  width: 0 !important;
+  border-left: 1px solid #d9d9d9 !important;
+  border-right: 1px solid #fff !important;
+  color: transparent !important;
+  text-indent: -10px !important;
+  margin: 0 6px !important;
+}
+
+/* 暗色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .editor-toolbar {
+    background: #333 !important;
+  }
+  
+  .editor-toolbar a {
+    color: #fff !important;
+  }
+  
+  .editor-toolbar a:before {
+    color: #fff !important;
+  }
+  
+  .editor-toolbar a.active, 
+  .editor-toolbar a:hover {
+    background: #444 !important;
+    border-color: #666 !important;
+  }
+  
+  .editor-toolbar a.fa-header-1:after,
+  .editor-toolbar a.fa-header-2:after,
+  .editor-toolbar a.fa-header-3:after {
+    color: #fff !important;
+  }
+  
+  .editor-toolbar i.separator {
+    border-left: 1px solid #666 !important;
+    border-right: 1px solid #444 !important;
+  }
+}
