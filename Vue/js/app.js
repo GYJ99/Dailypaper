@@ -6,6 +6,7 @@ const app = createApp({
     const currentDate = ref(new Date());
     const workData = ref({});
     const selectedDate = ref(null);
+    const fileInput = ref(null);
     const selectedDateInfo = reactive({
       isWorkingDay: false,
       startTime: '',
@@ -139,6 +140,58 @@ const app = createApp({
     function saveWorkData() {
       localStorage.setItem('workReportData', JSON.stringify(workData.value));
       updateStats();
+    }
+    
+    // 导出数据到JSON文件
+    function exportData() {
+      const dataStr = JSON.stringify(workData.value, null, 2);
+      const dataBlob = new Blob([dataStr], {type: 'application/json'});
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}${(now.getMonth()+1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
+      link.download = `日报数据备份_${dateStr}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+    
+    // 触发文件选择器
+    function triggerFileInput() {
+      if (fileInput.value) {
+        fileInput.value.click();
+      }
+    }
+    
+    // 处理文件上传
+    function handleFileUpload(event) {
+      if (!event || !event.target || !event.target.files) return;
+      
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          // 合并导入的数据与现有数据
+          workData.value = importedData;
+          saveWorkData();
+          alert('数据导入成功！');
+          renderCalendar(); // 重新渲染日历
+          if (selectedDate.value) {
+            selectDate(selectedDate.value); // 更新选中日期的信息
+          }
+        } catch (error) {
+          console.error('导入数据失败:', error);
+          alert('导入失败：文件格式不正确');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = ''; // 重置文件输入，允许重复选择同一文件
     }
     
     // 渲染日历
@@ -589,9 +642,11 @@ const app = createApp({
     }
     
     return {
+      // 变量
       currentDate,
       workData,
       selectedDate,
+      fileInput,
       selectedDateInfo,
       startTime,
       endTime,
@@ -606,6 +661,9 @@ const app = createApp({
       isSelectedDate,
       prevMonth,
       nextMonth,
+      exportData,
+      triggerFileInput,
+      handleFileUpload,
       calculateWorkHours,
       openTimeSettingModal,
       saveTimeSettings,
