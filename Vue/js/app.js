@@ -109,6 +109,8 @@ const app = createApp({
         try {
           workData.value = JSON.parse(savedData);
           updateStats();
+          // 已经有数据，直接渲染日历
+          renderCalendar();
         } catch (e) {
           console.error('解析工作数据失败:', e);
           workData.value = {};
@@ -122,6 +124,13 @@ const app = createApp({
     
     // 加载初始示例数据
     function loadInitialData() {
+      // 检查是否已经有数据，避免重复加载
+      if (Object.keys(workData.value).length > 0) {
+        renderCalendar();
+        updateStats();
+        return;
+      }
+      
       fetch('./data/initial_data.json')
         .then(response => response.json())
         .then(data => {
@@ -133,6 +142,8 @@ const app = createApp({
         .catch(error => {
           console.error('加载初始数据失败:', error);
           workData.value = {};
+          renderCalendar();
+          updateStats();
         });
     }
     
