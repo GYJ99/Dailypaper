@@ -19,6 +19,10 @@ const app = createApp({
     const startTime = ref('09:00');
     const endTime = ref('18:00');
     const calculatedHours = ref(9);
+    const defaultTimeSettings = reactive({
+      startTime: '09:00',
+      endTime: '18:00'
+    });
     
     // 模态框数据
     const modalDate = ref('');
@@ -68,6 +72,9 @@ const app = createApp({
         }
       });
       
+      // 加载默认时间设置
+      loadDefaultTimeSettings();
+      
       // 加载工作数据
       loadWorkData();
       
@@ -76,6 +83,10 @@ const app = createApp({
       
       // 初始化模态框
       initModal();
+      
+      // 设置今天的日期为默认选中日期
+      const today = formatDate(new Date());
+      selectDate(today);
     });
     
     // 监听当前日期变化，重新渲染日历
@@ -97,9 +108,35 @@ const app = createApp({
       const timeSettingModal = document.getElementById('timeSettingModal');
       timeSettingModal.addEventListener('hidden.bs.modal', () => {
         // 模态框关闭时重置数据
-        modalStartTime.value = '09:00';
-        modalEndTime.value = '18:00';
+        modalStartTime.value = defaultTimeSettings.startTime;
+        modalEndTime.value = defaultTimeSettings.endTime;
       });
+    }
+    
+    // 加载默认时间设置
+    function loadDefaultTimeSettings() {
+      const savedSettings = localStorage.getItem('defaultTimeSettings');
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          defaultTimeSettings.startTime = settings.startTime;
+          defaultTimeSettings.endTime = settings.endTime;
+          startTime.value = settings.startTime;
+          endTime.value = settings.endTime;
+          calculateWorkHours();
+        } catch (e) {
+          console.error('解析默认时间设置失败:', e);
+        }
+      }
+    }
+    
+    // 保存默认时间设置
+    function saveDefaultTimeSettings() {
+      defaultTimeSettings.startTime = startTime.value;
+      defaultTimeSettings.endTime = endTime.value;
+      localStorage.setItem('defaultTimeSettings', JSON.stringify(defaultTimeSettings));
+      calculateWorkHours();
+      alert('默认工作时间已保存！');
     }
     
     // 加载工作数据
@@ -149,7 +186,13 @@ const app = createApp({
     
     // 保存工作数据
     function saveWorkData() {
-      localStorage.setItem('workReportData', JSON.stringify(workData.value));
+      try {
+        localStorage.setItem('workReportData', JSON.stringify(workData.value));
+        console.log('数据已保存到本地存储', workData.value);
+      } catch (e) {
+        console.error('保存数据到本地存储失败:', e);
+        alert('保存数据失败，可能是存储空间不足');
+      }
       updateStats();
     }
     
@@ -682,7 +725,9 @@ const app = createApp({
       saveReport,
       deleteReport,
       downloadJson,
-      downloadCsv
+      downloadCsv,
+      saveDefaultTimeSettings,
+      updateWorkTime
     };
   }
 }).mount('#app');

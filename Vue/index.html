@@ -96,6 +96,16 @@
                 </div>
               </div>
             </div>
+            <div class="row mt-2">
+              <div class="col-12 text-end">
+                <button @click="saveDefaultTimeSettings" class="btn btn-sm btn-primary">
+                  <i class="fas fa-save me-1"></i>保存为默认时间
+                </button>
+                <button @click="updateWorkTime(selectedDate, startTime, endTime)" class="btn btn-sm btn-success ms-2" :disabled="!selectedDate">
+                  <i class="fas fa-check me-1"></i>应用到当前日期
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         
