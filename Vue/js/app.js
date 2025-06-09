@@ -40,6 +40,10 @@ const app = createApp({
     // 日历数据
     const calendar = ref([]);
     
+    // 文件路径常量
+    const DATA_FILE_PATH = './data/work_data.json';
+    const SETTINGS_FILE_PATH = './data/settings.json';
+    
     // SimpleMDE实例
     let simpleMDE = null;
     
@@ -114,85 +118,133 @@ const app = createApp({
     }
     
     // 加载默认时间设置
-    function loadDefaultTimeSettings() {
-      const savedSettings = localStorage.getItem('defaultTimeSettings');
-      if (savedSettings) {
-        try {
-          const settings = JSON.parse(savedSettings);
-          defaultTimeSettings.startTime = settings.startTime;
-          defaultTimeSettings.endTime = settings.endTime;
-          startTime.value = settings.startTime;
-          endTime.value = settings.endTime;
-          calculateWorkHours();
-        } catch (e) {
-          console.error('解析默认时间设置失败:', e);
+    async function loadDefaultTimeSettings() {
+      try {
+        // 首先尝试从localStorage获取设置
+        const savedSettings = localStorage.getItem('defaultTimeSettings');
+        let settings;
+        
+        if (savedSettings) {
+          settings = JSON.parse(savedSettings);
+        } else {
+          // 如果localStorage没有，则尝试从文件加载
+          settings = await FileServer.loadFile(SETTINGS_FILE_PATH, {
+            startTime: '09:00',
+            endTime: '18:00'
+          });
+          
+          // 将设置保存到localStorage作为缓存
+          localStorage.setItem('defaultTimeSettings', JSON.stringify(settings));
         }
+        
+        defaultTimeSettings.startTime = settings.startTime;
+        defaultTimeSettings.endTime = settings.endTime;
+        startTime.value = settings.startTime;
+        endTime.value = settings.endTime;
+        calculateWorkHours();
+      } catch (e) {
+        console.error('加载默认时间设置失败:', e);
       }
     }
     
     // 保存默认时间设置
-    function saveDefaultTimeSettings() {
-      defaultTimeSettings.startTime = startTime.value;
-      defaultTimeSettings.endTime = endTime.value;
-      localStorage.setItem('defaultTimeSettings', JSON.stringify(defaultTimeSettings));
-      calculateWorkHours();
-      alert('默认工作时间已保存！');
+    async function saveDefaultTimeSettings() {
+      try {
+        defaultTimeSettings.startTime = startTime.value;
+        defaultTimeSettings.endTime = endTime.value;
+        
+        // 保存到localStorage
+        localStorage.setItem('defaultTimeSettings', JSON.stringify(defaultTimeSettings));
+        
+        // 保存到文件
+        await FileServer.saveFile(SETTINGS_FILE_PATH, defaultTimeSettings);
+        
+        calculateWorkHours();
+        alert('默认工作时间已保存！');
+      } catch (e) {
+        console.error('保存默认时间设置失败:', e);
+        alert('保存默认时间设置失败: ' + e.message);
+      }
     }
     
     // 加载工作数据
-    function loadWorkData() {
-      const savedData = localStorage.getItem('workReportData');
-      if (savedData) {
-        try {
+    async function loadWorkData() {
+      try {
+        // 首先尝试从localStorage获取数据
+        const savedData = localStorage.getItem('workReportData');
+        
+        if (savedData) {
           workData.value = JSON.parse(savedData);
-          updateStats();
-          // 已经有数据，直接渲染日历
-          renderCalendar();
-        } catch (e) {
-          console.error('解析工作数据失败:', e);
-          workData.value = {};
-          loadInitialData();
+        } else {
+          // 如果localStorage没有，则尝试从文件加载
+          const data = await FileServer.loadFile(DATA_FILE_PATH, {});
+          
+          if (Object.keys(data).length === 0) {
+            // 如果文件为空或不存在，加载初始示例数据
+            await loadInitialData();
+          } else {
+            workData.value = data;
+            // 将数据保存到localStorage作为缓存
+            localStorage.setItem('workReportData', JSON.stringify(data));
+          }
         }
-      } else {
-        // 如果本地没有数据，加载初始示例数据
-        loadInitialData();
+        
+        updateStats();
+        renderCalendar();
+      } catch (e) {
+        console.error('加载工作数据失败:', e);
+        // 如果加载失败，尝试加载初始示例数据
+        await loadInitialData();
       }
     }
     
     // 加载初始示例数据
-    function loadInitialData() {
-      // 检查是否已经有数据，避免重复加载
-      if (Object.keys(workData.value).length > 0) {
+    async function loadInitialData() {
+      try {
+        // 检查是否已经有数据，避免重复加载
+        if (Object.keys(workData.value).length > 0) {
+          renderCalendar();
+          updateStats();
+          return;
+        }
+        
+        // 从初始数据文件加载
+        const data = await fetch('./data/initial_data.json')
+          .then(response => response.json());
+        
+        workData.value = data;
+        
+        // 保存到localStorage
+        localStorage.setItem('workReportData', JSON.stringify(data));
+        
+        // 保存到文件
+        await FileServer.saveFile(DATA_FILE_PATH, data);
+        
         renderCalendar();
         updateStats();
-        return;
+      } catch (error) {
+        console.error('加载初始数据失败:', error);
+        workData.value = {};
+        renderCalendar();
+        updateStats();
       }
-      
-      fetch('./data/initial_data.json')
-        .then(response => response.json())
-        .then(data => {
-          workData.value = data;
-          saveWorkData();
-          renderCalendar();
-          updateStats();
-        })
-        .catch(error => {
-          console.error('加载初始数据失败:', error);
-          workData.value = {};
-          renderCalendar();
-          updateStats();
-        });
     }
     
     // 保存工作数据
-    function saveWorkData() {
+    async function saveWorkData() {
       try {
+        // 保存到localStorage
         localStorage.setItem('workReportData', JSON.stringify(workData.value));
-        console.log('数据已保存到本地存储', workData.value);
+        
+        // 保存到文件
+        await FileServer.saveFile(DATA_FILE_PATH, workData.value);
+        
+        console.log('数据已保存', workData.value);
       } catch (e) {
-        console.error('保存数据到本地存储失败:', e);
-        alert('保存数据失败，可能是存储空间不足');
+        console.error('保存数据失败:', e);
+        alert('保存数据失败: ' + e.message);
       }
+      
       updateStats();
     }
     
@@ -221,19 +273,25 @@ const app = createApp({
     }
     
     // 处理文件上传
-    function handleFileUpload(event) {
+    async function handleFileUpload(event) {
       if (!event || !event.target || !event.target.files) return;
       
       const file = event.target.files[0];
       if (!file) return;
       
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const importedData = JSON.parse(e.target.result);
           // 合并导入的数据与现有数据
           workData.value = importedData;
-          saveWorkData();
+          
+          // 保存到localStorage
+          localStorage.setItem('workReportData', JSON.stringify(importedData));
+          
+          // 保存到文件
+          await FileServer.saveFile(DATA_FILE_PATH, importedData);
+          
           alert('数据导入成功！');
           renderCalendar(); // 重新渲染日历
           if (selectedDate.value) {
@@ -376,8 +434,8 @@ const app = createApp({
         modalEndTime.value = workData.value[date].end_time;
       } else {
         // 否则使用默认时间
-        modalStartTime.value = '09:00';
-        modalEndTime.value = '18:00';
+        modalStartTime.value = defaultTimeSettings.startTime;
+        modalEndTime.value = defaultTimeSettings.endTime;
       }
       
       // 显示模态框
@@ -386,7 +444,7 @@ const app = createApp({
     }
     
     // 保存时间设置
-    function saveTimeSettings() {
+    async function saveTimeSettings() {
       const date = modalDate.value;
       
       if (!modalStartTime.value || !modalEndTime.value) {
@@ -394,7 +452,7 @@ const app = createApp({
         return;
       }
       
-      updateWorkTime(date, modalStartTime.value, modalEndTime.value);
+      await updateWorkTime(date, modalStartTime.value, modalEndTime.value);
       
       // 关闭模态框
       const modal = bootstrap.Modal.getInstance(document.getElementById('timeSettingModal'));
@@ -402,7 +460,7 @@ const app = createApp({
     }
     
     // 更新工作时间
-    function updateWorkTime(date, startTime, endTime) {
+    async function updateWorkTime(date, startTime, endTime) {
       if (!date) return;
       
       // 计算工作时长
@@ -426,7 +484,7 @@ const app = createApp({
       }
       
       // 保存数据
-      saveWorkData();
+      await saveWorkData();
       
       // 重新渲染日历
       renderCalendar();
@@ -438,7 +496,7 @@ const app = createApp({
     }
     
     // 删除工作时间
-    function deleteWorkTime() {
+    async function deleteWorkTime() {
       const date = modalDate.value;
       
       if (!date) return;
@@ -463,7 +521,7 @@ const app = createApp({
         }
         
         // 保存数据
-        saveWorkData();
+        await saveWorkData();
         
         // 重新渲染日历
         renderCalendar();
@@ -480,7 +538,7 @@ const app = createApp({
     }
     
     // 保存日报
-    function saveReport() {
+    async function saveReport() {
       if (!selectedDate.value) {
         alert('请先选择一个日期');
         return;
@@ -503,7 +561,7 @@ const app = createApp({
       }
       
       // 保存数据
-      saveWorkData();
+      await saveWorkData();
       
       // 更新日期信息
       updateSelectedDateInfo(selectedDate.value);
@@ -512,7 +570,7 @@ const app = createApp({
     }
     
     // 删除日报
-    function deleteReport() {
+    async function deleteReport() {
       if (!selectedDate.value) {
         alert('请先选择一个日期');
         return;
@@ -533,7 +591,7 @@ const app = createApp({
         }
         
         // 保存数据
-        saveWorkData();
+        await saveWorkData();
         
         // 清空编辑器
         simpleMDE.value('');
@@ -637,7 +695,7 @@ const app = createApp({
       }
       
       // 创建CSV内容
-      let csvContent = headers.join(',') + '\\n';
+      let csvContent = headers.join(',') + '\n';
       
       // 添加数据行
       for (const date in workData.value) {
@@ -657,7 +715,7 @@ const app = createApp({
           row.push(value !== undefined ? value : '');
         }
         
-        csvContent += row.join(',') + '\\n';
+        csvContent += row.join(',') + '\n';
       }
       
       // 创建下载链接
